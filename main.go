@@ -19,6 +19,7 @@ var (
 
 func init() {
 	flag.BoolVar(&isDebugMode, "d", false, "Is debug mode enabled")
+	flag.Parse()
 	if isDebugMode {
 		slog.SetLogLoggerLevel(slog.LevelDebug)
 	}
