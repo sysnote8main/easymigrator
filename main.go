@@ -45,9 +45,6 @@ func main() {
 	}
 	slog.Info("Files are copied.")
 
-	// folderA := "/Users/sysnote8/testingarea/a"
-	// folderB := "/Users/sysnote8/testingarea/b"
-
 	// 2. verify folders
 	slog.Info("Verifying folders", slog.String("folderA", folderA), slog.String("folderB", folderB))
 	err = verifyutil.VerifyFolderContents(folderA, folderB, false)
