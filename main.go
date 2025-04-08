@@ -2,6 +2,7 @@ package main
 
 import (
 	"easymigrator/pkg/verifyutil"
+	"fmt"
 	"log/slog"
 	"os"
 	"path/filepath"
@@ -20,7 +21,7 @@ func main() {
 
 	// Validate args
 	if len(os.Args) != 3 {
-		slog.Info("./(exec) (fromPath) (toPath)")
+		slog.Info(fmt.Sprintf("usage: ./%s (fromPath) (toPath)", os.Args[0]))
 		os.Exit(1)
 	}
 
