@@ -2,6 +2,7 @@ package main
 
 import (
 	"easymigrator/pkg/verifyutil"
+	"flag"
 	"fmt"
 	"log/slog"
 	"os"
@@ -12,8 +13,15 @@ import (
 	cp "github.com/otiai10/copy"
 )
 
+var (
+	isDebugMode bool
+)
+
 func init() {
-	slog.SetLogLoggerLevel(slog.LevelDebug)
+	flag.BoolVar(&isDebugMode, "d", false, "Is debug mode enabled")
+	if isDebugMode {
+		slog.SetLogLoggerLevel(slog.LevelDebug)
+	}
 }
 
 func main() {
