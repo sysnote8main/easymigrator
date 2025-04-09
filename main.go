@@ -14,11 +14,13 @@ import (
 )
 
 var (
-	isDebugMode bool
+	isDebugMode    bool
+	verifyOnlyMode bool
 )
 
 func init() {
 	flag.BoolVar(&isDebugMode, "d", false, "Is debug mode enabled")
+	flag.BoolVar(&verifyOnlyMode, "c", false, "Is verify only mode")
 	flag.Parse()
 	if isDebugMode {
 		slog.SetLogLoggerLevel(slog.LevelDebug)
@@ -45,15 +47,16 @@ func main() {
 		slog.Error("Failed to convert second arg to absolute path", slog.Any("error", err))
 		os.Exit(1)
 	}
-
-	// 1. Copy all content in folderA to folderB
-	slog.Info("Copying files", slog.String("from", folderA), slog.String("to", folderB))
-	err = cp.Copy(folderA, folderB)
-	if err != nil {
-		slog.Error("Failed to copy", slog.Any("err", err))
-		os.Exit(1)
+	if !verifyOnlyMode {
+		// 1. Copy all content in folderA to folderB
+		slog.Info("Copying files", slog.String("from", folderA), slog.String("to", folderB))
+		err = cp.Copy(folderA, folderB)
+		if err != nil {
+			slog.Error("Failed to copy", slog.Any("err", err))
+			os.Exit(1)
+		}
+		slog.Info("Files are copied.")
 	}
-	slog.Info("Files are copied.")
 
 	// 2. verify folders
 	slog.Info("Verifying folders", slog.String("folderA", folderA), slog.String("folderB", folderB))
@@ -64,32 +67,34 @@ func main() {
 	}
 	slog.Info("Success to verify folder.")
 
-	// 3. Delete directory (interactive)
-	var confirmed bool = false
-	if err = huh.NewConfirm().Title("Delete origin folder?").Affirmative("Yes!").Negative("No.").Value(&confirmed).Run(); err != nil {
-		slog.Warn("Failed to show confirm ui. Continue with don't delete.")
-	}
-
-	// If confirmed, delete origin directory.
-	if confirmed {
-		slog.Info("Deleting folder & inside contents", slog.String("folderPath", folderA))
-		// delete origin folder
-		err = os.RemoveAll(folderA)
-		if err != nil {
-			slog.Error("Failed to remove directory", slog.Any("error", err), slog.String("folder", folderA))
-			os.Exit(1)
+	if !verifyOnlyMode {
+		// 3. Delete directory (interactive)
+		var confirmed bool = false
+		if err = huh.NewConfirm().Title("Delete origin folder?").Affirmative("Yes!").Negative("No.").Value(&confirmed).Run(); err != nil {
+			slog.Warn("Failed to show confirm ui. Continue with don't delete.")
 		}
-	} else {
-		slog.Info("Delete directory & Create symlink will skip.")
-	}
 
-	// 4. create symlink folderA to folderB (if not confirmed, this action will skip.)
-	if confirmed {
-		slog.Info("Creating symlink", slog.String("from", folderA), slog.String("to", folderB))
-		err = os.Symlink(folderB, folderA)
-		if err != nil {
-			slog.Error("Failed to create symlink", slog.Any("error", err), slog.String("from", folderA), slog.String("to", folderB))
-			os.Exit(1)
+		// If confirmed, delete origin directory.
+		if confirmed {
+			slog.Info("Deleting folder & inside contents", slog.String("folderPath", folderA))
+			// delete origin folder
+			err = os.RemoveAll(folderA)
+			if err != nil {
+				slog.Error("Failed to remove directory", slog.Any("error", err), slog.String("folder", folderA))
+				os.Exit(1)
+			}
+		} else {
+			slog.Info("Delete directory & Create symlink will skip.")
+		}
+
+		// 4. create symlink folderA to folderB (if not confirmed, this action will skip.)
+		if confirmed {
+			slog.Info("Creating symlink", slog.String("from", folderA), slog.String("to", folderB))
+			err = os.Symlink(folderB, folderA)
+			if err != nil {
+				slog.Error("Failed to create symlink", slog.Any("error", err), slog.String("from", folderA), slog.String("to", folderB))
+				os.Exit(1)
+			}
 		}
 	}
 
